@@ -9,24 +9,32 @@ import (
 )
 
 type GameWord struct {
-	Content string
-	UID     string
+	Content  string
+	UID      string
+	Lidwoord string
 }
 
 func GetRandomWord(db *sql.DB) (*GameWord, error) {
-	row := db.QueryRow(`SELECT uid, content FROM woord ORDER BY RANDOM() LIMIT 1`)
+	row := db.QueryRow(`
+		SELECT woord.uid, woord.content, lidwoord.content
+		FROM woord
+				 INNER JOIN woord_lidwoord on woord.id = woord_lidwoord.woord_id
+				 INNER JOIN lidwoord on lidwoord.id = woord_lidwoord.lidwoord_id
+		ORDER BY RANDOM()
+		LIMIT 1;
+	`)
 	if row.Err() != nil {
 		return nil, row.Err()
 	}
 
-	var uid, content string
+	var gameWord GameWord
 
-	err := row.Scan(&uid, &content)
+	err := row.Scan(&gameWord.UID, &gameWord.Content, &gameWord.Lidwoord)
 	if err != nil {
 		return nil, err
 	}
 
-	return &GameWord{UID: uid, Content: content}, nil
+	return &gameWord, nil
 }
 
 func InsertNewWord(db *sql.DB, woord, lidwoord, plural string) error {

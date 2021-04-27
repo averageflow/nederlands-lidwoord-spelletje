@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"flag"
+	"fmt"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
@@ -51,11 +52,14 @@ func main() {
 	//}
 
 	reloadIcon, _ := fyne.LoadResourceFromURLString("")
-	gameWord, err := words.GetRandomWord(db)
+
+	var currentWord *words.GameWord
+
+	currentWord, err = words.GetRandomWord(db)
 	if err != nil {
 		panic(err.Error())
 	}
-	gameWordLabel := widget.NewLabel(gameWord.Content)
+	gameWordLabel := widget.NewLabel(currentWord.Content)
 	gameWordLabel.TextStyle = fyne.TextStyle{
 		Bold: true,
 	}
@@ -64,17 +68,40 @@ func main() {
 		container.NewCenter(container.NewHBox(
 			lidwoordTitle,
 			widget.NewButtonWithIcon("RELOAD", reloadIcon, func() {
-				newGameWord, errr := words.GetRandomWord(db)
-				if errr != nil {
-					panic(errr.Error())
+				currentWord, err = words.GetRandomWord(db)
+				if err != nil {
+					panic(err.Error())
 				}
-				gameWordLabel.Text = newGameWord.Content
+				gameWordLabel.Text = currentWord.Content
 			}),
 		)),
 		container.NewCenter(gameWordLabel),
 		container.NewCenter(container.NewHBox(
-			widget.NewButton("de", func() {}),
-			widget.NewButton("het", func() {}),
+			widget.NewButton("de", func() {
+				if currentWord.Lidwoord != "de" {
+					fmt.Println("FAILED")
+				} else {
+					fmt.Println("SUCCESS")
+					currentWord, err = words.GetRandomWord(db)
+					if err != nil {
+						panic(err.Error())
+					}
+					gameWordLabel.Text = currentWord.Content
+				}
+			}),
+			widget.NewButton("het", func() {
+				if currentWord.Lidwoord != "het" {
+					fmt.Println("FAILED")
+				} else {
+					fmt.Println("SUCCESS")
+					currentWord, err = words.GetRandomWord(db)
+					if err != nil {
+						panic(err.Error())
+					}
+					gameWordLabel.Text = currentWord.Content
+				}
+
+			}),
 		)),
 	)
 
