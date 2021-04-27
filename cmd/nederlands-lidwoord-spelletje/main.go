@@ -36,7 +36,11 @@ func main() {
 	//}
 
 	reloadIcon, _ := fyne.LoadResourceFromURLString("")
-	gameWordLabel := widget.NewLabel(words.GetRandomWord(db))
+	gameWord, err := words.GetRandomWord(db)
+	if err != nil {
+		panic(err.Error())
+	}
+	gameWordLabel := widget.NewLabel(gameWord.Content)
 	gameWordLabel.TextStyle = fyne.TextStyle{
 		Bold: true,
 	}
@@ -45,7 +49,11 @@ func main() {
 		container.NewCenter(container.NewHBox(
 			lidwoordTitle,
 			widget.NewButtonWithIcon("RELOAD", reloadIcon, func() {
-				gameWordLabel.Text = words.GetRandomWord(db)
+				newGameWord, errr := words.GetRandomWord(db)
+				if errr != nil {
+					panic(errr.Error())
+				}
+				gameWordLabel.Text = newGameWord.Content
 			}),
 		)),
 		container.NewCenter(gameWordLabel),
