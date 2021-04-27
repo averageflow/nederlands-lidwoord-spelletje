@@ -19,11 +19,12 @@ func main() {
 
 	woordFlag := flag.String("woord", "", "Woord")
 	lidwoordFlag := flag.String("lidwoord", "", "Lidwoord")
+	pluralFlag := flag.String("plural", "", "Plural")
 
 	flag.Parse()
 
-	if woordFlag != nil && lidwoordFlag != nil && *woordFlag != "" && *lidwoordFlag != "" {
-		err := words.InsertNewWord(db, *woordFlag, *lidwoordFlag)
+	if woordFlag != nil && lidwoordFlag != nil && *woordFlag != "" && *lidwoordFlag != "" && pluralFlag != nil && *pluralFlag != "" {
+		err := words.InsertNewWord(db, *woordFlag, *lidwoordFlag, *pluralFlag)
 		if err != nil {
 			panic(err.Error())
 		}
