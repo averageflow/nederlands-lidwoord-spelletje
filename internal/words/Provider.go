@@ -1,0 +1,5 @@
+package words
+
+func GetRandomWord() {
+
+}
