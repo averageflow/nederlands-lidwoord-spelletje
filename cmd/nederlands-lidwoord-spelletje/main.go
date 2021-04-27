@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"flag"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
@@ -14,6 +15,19 @@ func main() {
 	db, err := sql.Open("sqlite3", "../../storage/lidwoord.sqlite")
 	if err != nil {
 		panic(err.Error())
+	}
+
+	woordFlag := flag.String("woord", "", "Woord")
+	lidwoordFlag := flag.String("lidwoord", "", "Lidwoord")
+
+	flag.Parse()
+
+	if woordFlag != nil && lidwoordFlag != nil && *woordFlag != "" && *lidwoordFlag != "" {
+		err := words.InsertNewWord(db, *woordFlag, *lidwoordFlag)
+		if err != nil {
+			panic(err.Error())
+		}
+		return
 	}
 
 	a := app.New()
