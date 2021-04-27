@@ -3,7 +3,6 @@ package main
 import (
 	"database/sql"
 	"flag"
-	"fmt"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
@@ -64,13 +63,18 @@ func main() {
 		Bold: true,
 	}
 
+	gameStatusLabel := widget.NewLabel("")
+	gameStatusLabel.TextStyle = fyne.TextStyle{
+		Bold: true,
+	}
+
 	lidwoordContainer := container.NewVBox(
 		container.NewCenter(container.NewHBox(
 			lidwoordTitle,
-			widget.NewButtonWithIcon("RELOAD", reloadIcon, func() {
+			widget.NewButtonWithIcon("skip >>", reloadIcon, func() {
 				currentWord, err = words.GetRandomWord(db)
 				if err != nil {
-					panic(err.Error())
+					gameStatusLabel.Text = err.Error()
 				}
 				gameWordLabel.Text = currentWord.Content
 			}),
@@ -79,30 +83,30 @@ func main() {
 		container.NewCenter(container.NewHBox(
 			widget.NewButton("de", func() {
 				if currentWord.Lidwoord != "de" {
-					fmt.Println("FAILED")
+					gameStatusLabel.Text = "FAILED!"
 				} else {
-					fmt.Println("SUCCESS")
 					currentWord, err = words.GetRandomWord(db)
 					if err != nil {
-						panic(err.Error())
+						gameStatusLabel.Text = err.Error()
 					}
 					gameWordLabel.Text = currentWord.Content
+					gameStatusLabel.Text = ""
 				}
 			}),
 			widget.NewButton("het", func() {
 				if currentWord.Lidwoord != "het" {
-					fmt.Println("FAILED")
+					gameStatusLabel.Text = "FAILED!"
 				} else {
-					fmt.Println("SUCCESS")
 					currentWord, err = words.GetRandomWord(db)
 					if err != nil {
-						panic(err.Error())
+						gameStatusLabel.Text = err.Error()
 					}
 					gameWordLabel.Text = currentWord.Content
+					gameStatusLabel.Text = ""
 				}
-
 			}),
 		)),
+		container.NewCenter(container.NewVBox(gameStatusLabel)),
 	)
 
 	w.SetContent(container.NewAppTabs(
