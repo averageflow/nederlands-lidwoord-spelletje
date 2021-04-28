@@ -14,6 +14,12 @@ type GameWord struct {
 	Lidwoord string
 }
 
+type GameWordWithPlural struct {
+	GameWord
+	Plural    string
+	PluralUID string
+}
+
 func GetRandomWord(db *sql.DB) (*GameWord, error) {
 	row := db.QueryRow(`
 		SELECT woord.uid, woord.content, lidwoord.content
@@ -30,6 +36,37 @@ func GetRandomWord(db *sql.DB) (*GameWord, error) {
 	var gameWord GameWord
 
 	err := row.Scan(&gameWord.UID, &gameWord.Content, &gameWord.Lidwoord)
+	if err != nil {
+		return nil, err
+	}
+
+	return &gameWord, nil
+}
+
+func GetRandomWordWithPlural(db *sql.DB) (*GameWordWithPlural, error) {
+	row := db.QueryRow(`
+		SELECT (SELECT woord.uid FROM woord WHERE id = woord_plural.singular_id LIMIT 1)     AS singular_uid,
+			   (SELECT woord.content FROM woord WHERE id = woord_plural.singular_id LIMIT 1) AS singular_content,
+			   (SELECT lidwoord.content
+				FROM lidwoord
+				WHERE id = (SELECT lidwoord_id
+							FROM woord_lidwoord
+							WHERE woord_id = woord_plural.singular_id
+							LIMIT 1)
+				LIMIT 1)                                                                     AS lidwoord_content,
+			   (SELECT woord.uid FROM woord WHERE id = woord_plural.plural_id LIMIT 1)       AS plural_uid,
+			   (SELECT woord.content FROM woord WHERE id = woord_plural.plural_id LIMIT 1)   AS plural_content
+		FROM woord_plural
+		ORDER BY RANDOM()
+		LIMIT 1;
+	`)
+	if row.Err() != nil {
+		return nil, row.Err()
+	}
+
+	var gameWord GameWordWithPlural
+
+	err := row.Scan(&gameWord.UID, &gameWord.Content, &gameWord.Lidwoord, &gameWord.PluralUID, &gameWord.Plural)
 	if err != nil {
 		return nil, err
 	}

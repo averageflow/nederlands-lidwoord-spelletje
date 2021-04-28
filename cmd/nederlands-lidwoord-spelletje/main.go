@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"flag"
 
+	"github.com/averageflow/nederlands-lidwoord-spelletje/internal/ui"
+
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
@@ -35,79 +37,13 @@ func main() {
 	w := a.NewWindow("Nederlands Lidwoorden")
 	w.Resize(fyne.Size{Height: 600, Width: 800})
 
-	//lidwoordTitle,
-	//	widget.NewButton("Hi!", func() {
-	//		lidwoordTitle.SetText("Welcome :)")
-	//	}),)
-
-	lidwoordTitle := widget.NewLabel("Welkom in het lidwoord-spelletje!")
-	lidwoordTitle.TextStyle = fyne.TextStyle{
+	pluralTitle := widget.NewLabel("Het plural-spelletje!")
+	pluralTitle.TextStyle = fyne.TextStyle{
 		Bold: true,
 	}
 
-	//pluralTitle := widget.NewLabel("Welkom in het plural-spelletje!")
-	//pluralTitle.TextStyle = fyne.TextStyle{
-	//	Bold: true,
-	//}
-
-	reloadIcon, _ := fyne.LoadResourceFromURLString("")
-
-	var currentWord *words.GameWord
-
-	currentWord, err = words.GetRandomWord(db)
-	if err != nil {
-		panic(err.Error())
-	}
-	gameWordLabel := widget.NewLabel(currentWord.Content)
-	gameWordLabel.TextStyle = fyne.TextStyle{
-		Bold: true,
-	}
-
-	gameStatusLabel := widget.NewLabel("")
-	gameStatusLabel.TextStyle = fyne.TextStyle{
-		Bold: true,
-	}
-
-	lidwoordContainer := container.NewVBox(
-		container.NewCenter(container.NewHBox(
-			lidwoordTitle,
-			widget.NewButtonWithIcon("skip >>", reloadIcon, func() {
-				currentWord, err = words.GetRandomWord(db)
-				if err != nil {
-					gameStatusLabel.Text = err.Error()
-				}
-				gameWordLabel.Text = currentWord.Content
-			}),
-		)),
-		container.NewCenter(gameWordLabel),
-		container.NewCenter(container.NewHBox(
-			widget.NewButton("de", func() {
-				if currentWord.Lidwoord != "de" {
-					gameStatusLabel.Text = "FAILED!"
-				} else {
-					currentWord, err = words.GetRandomWord(db)
-					if err != nil {
-						gameStatusLabel.Text = err.Error()
-					}
-					gameWordLabel.Text = currentWord.Content
-					gameStatusLabel.Text = ""
-				}
-			}),
-			widget.NewButton("het", func() {
-				if currentWord.Lidwoord != "het" {
-					gameStatusLabel.Text = "FAILED!"
-				} else {
-					currentWord, err = words.GetRandomWord(db)
-					if err != nil {
-						gameStatusLabel.Text = err.Error()
-					}
-					gameWordLabel.Text = currentWord.Content
-					gameStatusLabel.Text = ""
-				}
-			}),
-		)),
-		container.NewCenter(container.NewVBox(gameStatusLabel)),
-	)
+	lidwoordContainer := ui.GetLidwoordContainer(db)
+	pluralContainer := ui.GetPluralContainer(db)
 
 	w.SetContent(container.NewAppTabs(
 		&container.TabItem{
@@ -115,13 +51,11 @@ func main() {
 			Icon:    nil,
 			Content: lidwoordContainer,
 		},
-		//&container.TabItem{
-		//	Text: "Plural",
-		//	Icon: nil,
-		//	Content: container.NewVBox(
-		//		pluralTitle,
-		//	),
-		//},
+		&container.TabItem{
+			Text:    "Plural",
+			Icon:    nil,
+			Content: pluralContainer,
+		},
 	))
 
 	w.ShowAndRun()
