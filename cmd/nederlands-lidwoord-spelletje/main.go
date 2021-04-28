@@ -23,7 +23,7 @@ func main() {
 
 	flag.Parse()
 
-	if woordFlag != nil && lidwoordFlag != nil && *woordFlag != "" && *lidwoordFlag != "" && pluralFlag != nil && *pluralFlag != "" {
+	if woordFlag != nil && lidwoordFlag != nil && *woordFlag != "" && *lidwoordFlag != "" && pluralFlag != nil {
 		err := words.InsertNewWord(db, *woordFlag, *lidwoordFlag, *pluralFlag)
 		if err != nil {
 			panic(err.Error())

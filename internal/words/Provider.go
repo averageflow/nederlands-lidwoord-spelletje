@@ -62,26 +62,8 @@ func InsertNewWord(db *sql.DB, woord, lidwoord, plural string) error {
 
 	defer insertWordRelationLidwoordStmt.Close()
 
-	insertWordPluralStmt, err := tx.Prepare(`
-		INSERT INTO woord_plural(singular_id, plural_id) VALUES (
-		  (SELECT id FROM woord WHERE content = ? LIMIT 1), (SELECT id FROM woord WHERE content = ? LIMIT 1))
-		`)
-	if err != nil {
-		_ = tx.Rollback()
-		return err
-	}
-
-	defer insertWordPluralStmt.Close()
-
 	// Insert singular word
 	_, err = insertWordStmt.Exec(uuid.NewString(), woord, time.Now().Unix())
-	if err != nil {
-		_ = tx.Rollback()
-		return err
-	}
-
-	// Insert plural word
-	_, err = insertWordStmt.Exec(uuid.NewString(), plural, time.Now().Unix())
 	if err != nil {
 		_ = tx.Rollback()
 		return err
@@ -94,18 +76,38 @@ func InsertNewWord(db *sql.DB, woord, lidwoord, plural string) error {
 		return err
 	}
 
-	// Insert lidwoord (always de) for plural
-	_, err = insertWordRelationLidwoordStmt.Exec(plural, "de")
-	if err != nil {
-		_ = tx.Rollback()
-		return err
-	}
+	if plural != "" {
+		insertWordPluralStmt, err := tx.Prepare(`
+		INSERT INTO woord_plural(singular_id, plural_id) VALUES (
+		  (SELECT id FROM woord WHERE content = ? LIMIT 1), (SELECT id FROM woord WHERE content = ? LIMIT 1))
+		`)
+		if err != nil {
+			_ = tx.Rollback()
+			return err
+		}
 
-	// Insert plural relationship
-	_, err = insertWordPluralStmt.Exec(woord, plural)
-	if err != nil {
-		_ = tx.Rollback()
-		return err
+		defer insertWordPluralStmt.Close()
+
+		// Insert plural word
+		_, err = insertWordStmt.Exec(uuid.NewString(), plural, time.Now().Unix())
+		if err != nil {
+			_ = tx.Rollback()
+			return err
+		}
+
+		// Insert lidwoord (always de) for plural
+		_, err = insertWordRelationLidwoordStmt.Exec(plural, "de")
+		if err != nil {
+			_ = tx.Rollback()
+			return err
+		}
+
+		// Insert plural relationship
+		_, err = insertWordPluralStmt.Exec(woord, plural)
+		if err != nil {
+			_ = tx.Rollback()
+			return err
+		}
 	}
 
 	err = tx.Commit()
